@@ -7,7 +7,7 @@
 //
 
 import UIKit
-
+import AVFoundation
 enum COOKING_TIME{
     case HARD;
     case MEDIUM;
@@ -15,6 +15,7 @@ enum COOKING_TIME{
 }
 
 class ViewController: UIViewController {
+    var avPlayer:AVAudioPlayer?
     var isCooking = false
     var WINDOW_WIDTH:CGFloat? = nil
     var lable = UILabel();
@@ -55,7 +56,7 @@ class ViewController: UIViewController {
     
     override func viewDidLoad(){
         super.viewDidLoad()
-        view.backgroundColor = .lightGray;
+        view.backgroundColor = UIColor(hex: "#87CEFA");
         view.addSubview(HStack);
         view.addSubview(lable)
         view.addSubview(onShowTimerIndicator)
@@ -82,10 +83,23 @@ class ViewController: UIViewController {
     
         
     }
+    
+    func onDoneCooking(){
+        if let sound = Bundle.main.url(forResource: "alarm_sound", withExtension: "mp3"){
+            do{
+                avPlayer = try AVAudioPlayer(contentsOf: sound)
+                avPlayer?.prepareToPlay();
+                avPlayer?.play()
+            }catch{
+                printContent("DEBUG: \(error) in side onDoneCooking")
+            }
+          
+        }
+    }
     func onStartTimer(_ second:TimeInterval){
-       guard let windowWidth = WINDOW_WIDTH else {
-           return;
-       }
+//       guard let windowWidth = WINDOW_WIDTH else {
+//           return;
+//       }
        
             isCooking.toggle()
             sliderOff?.isActive.toggle();
@@ -100,6 +114,8 @@ class ViewController: UIViewController {
                 self.sliderOff?.isActive.toggle();
                 self.sliderOn?.isActive.toggle();
                 self.isCooking.toggle()
+                self.onDoneCooking()
+                
             }
         }
     }
@@ -126,7 +142,22 @@ class ViewController: UIViewController {
     }
  }
 
-
+extension UIColor {
+    convenience init(hex: String) {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        if hexSanitized.hasPrefix("#") {
+            hexSanitized.remove(at: hexSanitized.startIndex)
+        }
+        var rgb: UInt64 = 0
+        Scanner(string: hexSanitized).scanHexInt64(&rgb)
+        self.init(
+            red: CGFloat((rgb & 0xFF0000) >> 16) / 255.0,
+            green: CGFloat((rgb & 0x00FF00) >> 8) / 255.0,
+            blue: CGFloat(rgb & 0x0000FF) / 255.0,
+            alpha: 1.0
+        )
+    }
+}
 #Preview {
     ViewController()
 }
